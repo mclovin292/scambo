@@ -4,63 +4,87 @@
   <meta charset="UTF-8">
   <title>Meu Perfil - SCAMBO</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
-<script>
-  const firebaseConfig = {
-    apiKey: "SUA_API_KEY",
-    authDomain: "SEU_DOMINIO.firebaseapp.com",
-    projectId: "SEU_PROJECT_ID",
-    storageBucket: "SEU_BUCKET.appspot.com",
-    messagingSenderId: "SEU_ID",
-    appId: "SEU_APP_ID",
-    databaseURL: "https://SEU_PROJECT_ID.firebaseio.com"
-  };
-
-  firebase.initializeApp(firebaseConfig);
-</script>
-
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "SUA_API_KEY",
+      authDomain: "SEU_DOMINIO.firebaseapp.com",
+      projectId: "SEU_PROJECT_ID",
+      storageBucket: "SEU_BUCKET.appspot.com",
+      messagingSenderId: "SEU_ID",
+      appId: "SEU_APP_ID",
+      databaseURL: "https://SEU_PROJECT_ID.firebaseio.com"
+    };
+    firebase.initializeApp(firebaseConfig);
+  </script>
 </head>
 <body class="bg-gray-100 text-gray-800">
   <div class="max-w-3xl mx-auto bg-white p-6 mt-6 rounded shadow">
     <h1 class="text-2xl font-bold mb-4">Meu Perfil</h1>
-    <p class="mb-2">Itens que você cadastrou:</p>
-    <div class="grid gap-4">
-      <!-- Itens do usuário serão exibidos aqui dinamicamente -->
+
+    <h2 class="text-xl font-semibold mb-2">Itens cadastrados:</h2>
+    <div id="meus-itens" class="grid gap-4 mb-6">
+      <p>Carregando...</p>
     </div>
 
     <h2 class="text-xl font-semibold mt-6 mb-2">Histórico de Mensagens</h2>
-    <ul id="mensagens" class="list-disc pl-5"></ul>
+    <ul id="mensagens" class="list-disc pl-5">
+      <li>Carregando mensagens...</li>
+    </ul>
 
     <a href="index.html" class="text-blue-500 block mt-6">← Voltar</a>
   </div>
 
   <script>
     firebase.auth().onAuthStateChanged(user => {
-      if (user) {
-        const mensagensRef = firebase.database().ref("mensagens/");
-        mensagensRef.orderByChild("usuarioId").equalTo(user.uid).once("value", snapshot => {
-          const lista = document.getElementById("mensagens");
-          lista.innerHTML = "";
+      if (!user) {
+        window.location.href = "index.html";
+        return;
+      }
+
+      const uid = user.uid;
+
+      // Buscar itens cadastrados pelo usuário
+      const itensRef = firebase.database().ref("itens/");
+      itensRef.orderByChild("usuarioId").equalTo(uid).once("value", snapshot => {
+        const container = document.getElementById("meus-itens");
+        container.innerHTML = "";
+        if (!snapshot.exists()) {
+          container.innerHTML = "<p>Nenhum item cadastrado.</p>";
+        } else {
+          snapshot.forEach(child => {
+            const item = child.val();
+            const div = document.createElement("div");
+            div.className = "p-4 border rounded bg-gray-50";
+            div.innerHTML = `
+              <strong>${item.nome}</strong><br />
+              ${item.descricao || ""}<br />
+              Categoria: ${item.categoria || "Não informada"}
+            `;
+            container.appendChild(div);
+          });
+        }
+      });
+
+      // Buscar histórico de mensagens
+      const mensagensRef = firebase.database().ref("mensagens/");
+      mensagensRef.orderByChild("usuarioId").equalTo(uid).once("value", snapshot => {
+        const lista = document.getElementById("mensagens");
+        lista.innerHTML = "";
+        if (!snapshot.exists()) {
+          lista.innerHTML = "<li>Nenhuma mensagem encontrada.</li>";
+        } else {
           snapshot.forEach(child => {
             const msg = child.val();
-            const item = document.createElement("li");
-            const link = document.createElement("a");
-            link.href = `chat.html?item=${msg.itemId}`;
-            link.textContent = `Chat sobre "${msg.nomeItem}"`;
-            link.className = "text-blue-600 underline";
-            item.appendChild(link);
-            lista.appendChild(item);
+            const li = document.createElement("li");
+            li.innerHTML = `<a href="chat.html?item=${msg.itemId}" class="text-blue-600 underline">Chat sobre "${msg.nomeItem}"</a>`;
+            lista.appendChild(li);
           });
-          if (!snapshot.exists()) {
-            lista.innerHTML = "<li>Nenhuma mensagem encontrada.</li>";
-          }
-        });
-      } else {
-        window.location.href = "index.html";
-      }
+        }
+      });
     });
   </script>
 </body>
