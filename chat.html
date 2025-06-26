@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Chat - SCAMBO</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "SUA_API_KEY",
+      authDomain: "SEU_DOMINIO.firebaseapp.com",
+      projectId: "SEU_PROJECT_ID",
+      storageBucket: "SEU_BUCKET.appspot.com",
+      messagingSenderId: "SEU_ID",
+      appId: "SEU_APP_ID",
+      databaseURL: "https://SEU_PROJECT_ID.firebaseio.com"
+    };
+    firebase.initializeApp(firebaseConfig);
+  </script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+  <div class="max-w-3xl mx-auto p-6 bg-white mt-6 rounded shadow">
+    <h1 class="text-2xl font-bold mb-2">Chat sobre: <span id="nomeItem" class="text-blue-600"></span></h1>
+
+    <div id="mensagens" class="h-64 overflow-y-auto bg-gray-50 p-4 mb-4 rounded border"></div>
+
+    <form id="formMensagem" class="flex gap-2">
+      <input type="text" id="mensagem" placeholder="Digite sua mensagem..." class="flex-1 border p-2 rounded" required />
+      <button class="bg-blue-600 text-white px-4 rounded">Enviar</button>
+    </form>
+
+    <a href="perfil.html" class="text-blue-500 block mt-4">← Voltar</a>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const itemId = urlParams.get("item");
+
+    const nomeUsuario = prompt("Digite seu nome para o chat:");
+
+    const nomeItemSpan = document.getElementById("nomeItem");
+    const mensagensDiv = document.getElementById("mensagens");
+    const form = document.getElementById("formMensagem");
+    const input = document.getElementById("mensagem");
+
+    // Buscar nome do item
+    firebase.database().ref("itens/" + itemId).once("value").then(snapshot => {
+      const item = snapshot.val();
+      if (item && item.nome) {
+        nomeItemSpan.textContent = item.nome;
+      } else {
+        nomeItemSpan.textContent = "Item desconhecido";
+      }
+    });
+
+    // Exibir mensagens em tempo real
+    const chatRef = firebase.database().ref("chats/" + itemId + "/mensagens");
+    chatRef.on("child_added", snapshot => {
+      const msg = snapshot.val();
+      const div = document.createElement("div");
+      div.className = "mb-2";
+      div.innerHTML = `<strong>${msg.usuario}:</strong> ${msg.texto}`;
+      mensagensDiv.appendChild(div);
+      mensagensDiv.scrollTop = mensagensDiv.scrollHeight;
+    });
+
+    // Enviar nova mensagem
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      const novaMensagem = {
+        usuario: nomeUsuario,
+        texto: input.value,
+        timestamp: Date.now()
+      };
+      chatRef.push(novaMensagem);
+      input.value = "";
+    });
+  </script>
+</body>
+</html>
