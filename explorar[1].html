@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Explorar Itens - Escambo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+  <header class="bg-white shadow p-4 flex justify-between items-center">
+    <h1 class="text-xl font-bold">Escambo</h1>
+    <nav class="flex gap-4">
+      <a href="index.html" class="text-blue-600 hover:underline">Início</a>
+      <a href="cadastro.html" class="text-blue-600 hover:underline">Cadastrar Item</a>
+      <a href="perfil.html" class="text-blue-600 hover:underline">Meu Perfil</a>
+      <a href="login.html" class="text-blue-600 hover:underline">Login</a>
+    </nav>
+  </header>
+
+  <main class="max-w-4xl mx-auto py-8 px-4">
+    <h2 class="text-lg font-semibold mb-4">Itens Disponíveis para Troca</h2>
+
+    <div class="flex gap-4 mb-4">
+      <input type="text" id="pesquisa" placeholder="Pesquisar item..." class="flex-1 border p-2 rounded">
+      <select id="filtroCategoria" class="border p-2 rounded">
+        <option value="">Todas categorias</option>
+        <option>Livros</option>
+        <option>Material Escolar</option>
+        <option>Eletrônicos</option>
+        <option>Roupas</option>
+        <option>Esportes</option>
+        <option>Instrumentos</option>
+        <option>Móveis</option>
+        <option>Jogos</option>
+        <option>Outros</option>
+      </select>
+    </div>
+
+    <div id="itensContainer" class="grid gap-4"></div>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <script src="./firebase-config.js"></script>
+  <script>
+    const db = firebase.database();
+    const pesquisa = document.getElementById('pesquisa');
+    const filtroCategoria = document.getElementById('filtroCategoria');
+    const container = document.getElementById('itensContainer');
+
+    function renderItens(snapshot) {
+      container.innerHTML = '';
+      const termo = pesquisa.value.toLowerCase();
+      const filtro = filtroCategoria.value;
+      snapshot.forEach((child) => {
+        const item = child.val();
+        if ((item.titulo.toLowerCase().includes(termo)) &&
+            (filtro === '' || item.categoria === filtro)) {
+          const div = document.createElement('div');
+          div.className = 'p-4 border rounded bg-white shadow';
+          div.innerHTML = `
+            <strong>${item.titulo}</strong><br>
+            ${item.descricao}<br>
+            Categoria: ${item.categoria}<br>
+            Contato: ${item.nome} (${item.telefone})
+          `;
+          container.appendChild(div);
+        }
+      });
+    }
+
+    firebase.database().ref('itens').on('value', renderItens);
+    pesquisa.addEventListener('input', () => db.ref('itens').once('value', renderItens));
+    filtroCategoria.addEventListener('change', () => db.ref('itens').once('value', renderItens));
+  </script>
+</body>
+</html>

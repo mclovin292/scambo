@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Login - Escambo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+  <header class="bg-white shadow p-4 flex justify-between items-center">
+    <h1 class="text-xl font-bold">Escambo</h1>
+    <nav class="flex gap-4">
+      <a href="index.html" class="text-blue-600 hover:underline">Início</a>
+      <a href="explorar.html" class="text-blue-600 hover:underline">Explorar</a>
+    </nav>
+  </header>
+
+  <main class="max-w-md mx-auto mt-10 bg-white p-6 rounded shadow">
+    <h2 class="text-lg font-semibold mb-4">Entrar ou Criar Conta</h2>
+    <form id="loginForm" class="flex flex-col gap-4">
+      <input type="email" id="email" placeholder="Email" class="border p-2 rounded" required>
+      <input type="password" id="senha" placeholder="Senha" class="border p-2 rounded" required>
+      <div class="flex gap-2">
+        <button type="button" id="loginBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Entrar</button>
+        <button type="button" id="signupBtn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Cadastrar</button>
+      </div>
+    </form>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="./firebase-config.js"></script>
+  <script>
+    const auth = firebase.auth();
+
+    document.getElementById('loginBtn').addEventListener('click', () => {
+      const email = document.getElementById('email').value;
+      const senha = document.getElementById('senha').value;
+      auth.signInWithEmailAndPassword(email, senha)
+        .then(() => window.location.href = 'perfil.html')
+        .catch(err => alert('Erro: ' + err.message));
+    });
+
+    document.getElementById('signupBtn').addEventListener('click', () => {
+      const email = document.getElementById('email').value;
+      const senha = document.getElementById('senha').value;
+      auth.createUserWithEmailAndPassword(email, senha)
+        .then(() => window.location.href = 'perfil.html')
+        .catch(err => alert('Erro: ' + err.message));
+    });
+  </script>
+</body>
+</html>

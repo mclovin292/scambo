@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Cadastrar Item - Escambo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+  <header class="bg-white shadow p-4 flex justify-between items-center">
+    <h1 class="text-xl font-bold">Escambo</h1>
+    <nav class="flex gap-4">
+      <a href="index.html" class="text-blue-600 hover:underline">Início</a>
+      <a href="explorar.html" class="text-blue-600 hover:underline">Explorar</a>
+      <a href="perfil.html" class="text-blue-600 hover:underline">Meu Perfil</a>
+    </nav>
+  </header>
+
+  <main class="max-w-xl mx-auto py-10 px-4 bg-white rounded shadow">
+    <h2 class="text-lg font-semibold mb-4">Cadastrar Novo Item</h2>
+    <form id="itemForm" class="flex flex-col gap-4">
+      <input type="text" id="nome" placeholder="Seu nome" class="border p-2 rounded" required>
+      <input type="text" id="telefone" placeholder="Seu telefone" class="border p-2 rounded" required>
+      <input type="text" id="titulo" placeholder="Título do item" class="border p-2 rounded" required>
+      <textarea id="descricao" placeholder="Descrição do item" class="border p-2 rounded"></textarea>
+      <select id="categoria" class="border p-2 rounded" required>
+        <option value="">Selecione uma categoria</option>
+        <option>Livros</option>
+        <option>Material Escolar</option>
+        <option>Eletrônicos</option>
+        <option>Roupas</option>
+        <option>Esportes</option>
+        <option>Instrumentos</option>
+        <option>Móveis</option>
+        <option>Jogos</option>
+        <option>Outros</option>
+      </select>
+      <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Cadastrar Item</button>
+    </form>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="./firebase-config.js"></script>
+  <script>
+    const db = firebase.database();
+    const auth = firebase.auth();
+
+    document.getElementById('itemForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const user = auth.currentUser;
+      if (!user) {
+        alert('Você precisa estar logado para cadastrar um item.');
+        return;
+      }
+      const item = {
+        nome: document.getElementById('nome').value.trim(),
+        telefone: document.getElementById('telefone').value.trim(),
+        titulo: document.getElementById('titulo').value.trim(),
+        descricao: document.getElementById('descricao').value.trim(),
+        categoria: document.getElementById('categoria').value,
+        email: user.email
+      };
+      await db.ref('itens').push(item);
+      alert('Item cadastrado com sucesso!');
+      document.getElementById('itemForm').reset();
+    });
+  </script>
+</body>
+</html>
